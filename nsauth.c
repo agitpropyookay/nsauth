@@ -56,7 +56,7 @@ static struct argp argp = { options, parse_opt, args_doc, doc };
 // 16384 │ 1m4.129s │ max recommended by OpenSSL
 // ──────┴──────────┴──────────────────────────────────────────────────────────
 // * key generation user time on AMD Ryzen™ 7 9800X3D × 16
-constexpr int bits = 4096; // [2048, 8192]
+constexpr int bits = 4096; // [2048, 8192] default is 4096
 
 /* function definitions */
 /**
@@ -165,7 +165,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
       arguments->arg = arg;
       break;
     case ARGP_KEY_END:
-      if (!state->arg_num)
+      if (!(arguments->c || arguments->g)) // no option
+        argp_usage (state);
+      if (!state->arg_num) // no argument
         argp_usage (state);
       break;
     default:
