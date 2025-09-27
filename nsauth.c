@@ -183,7 +183,7 @@ main (int argc, char **argv)
 
   argp_parse (&argp, argc, argv, 0, 0, &arguments);
   // calling generate() first allows both generating and using a key in one
-  // invocation: $ nsa -c example -g key.pem
+  // invocation: $ nsauth -c example -g key.pem
   if (arguments.g)
     generate (&arguments);
   if (arguments.c)
