@@ -45,18 +45,7 @@ static struct argp_option options[]
         { 0 } };
 // clang-format on
 static struct argp argp = { options, parse_opt, args_doc, doc };
-// ──────┬──────────┬──────────────────────────────────────────────────────────
-//  bits │ time*    │ description                     last updated Sep 27 2025
-// ──────┼──────────┼──────────────────────────────────────────────────────────
-//   829 │ 0m0.008s │ RSA250 factored Feb 28 2020
-//  1024 │ 0m0.012s │ insecure for signing as per NIST SP 800-57
-//  2048 │ 0m0.040s │
-//     ⋮ │ ⋮        │ recommended
-//  8192 │ 0m4.126s │
-// 16384 │ 1m4.129s │ max recommended by OpenSSL
-// ──────┴──────────┴──────────────────────────────────────────────────────────
-// * key generation user time on AMD Ryzen™ 7 9800X3D × 16
-constexpr int bits = 4096; // [2048, 8192] default is 4096
+constexpr int bits = 4096; // see README for more information
 
 /* function definitions */
 /**
