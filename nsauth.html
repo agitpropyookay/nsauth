@@ -1,0 +1,181 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>nsauth</title>
+		<!-- google fonts -->
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+		<!-- material symbols & icons -->
+		<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@300&icon_names=add,signature,verified,verified_off" rel="stylesheet" />
+	</head>
+	<body>
+		<style>
+			.material-symbols-outlined {
+			  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+			}
+			*:not(h1, h2) {
+				font-family: "IBM Plex Mono", monospace;
+				font-size: 13px;
+				font-style: normal;
+				font-weight: 500;
+				user-select: none;
+			}
+			.centreh {
+				display: flex;
+				justify-content: center;
+			}
+			.centrev {
+				align-items: center;
+				display: flex;
+			}
+			.serif {
+				font-family: Times, "Times New Roman", Georgia, serif;
+			}
+			.small-important {
+				opacity: 100%;
+				text-decoration: underline;
+			}
+			hr {
+				background-color: black;
+				border: none;
+				height: 1px;
+			}
+			small {
+				font-size: 12px;
+				opacity: 33%;
+			}
+			textarea {
+				height: 128px;
+				width: 512px;
+				word-break: break-all;
+			}
+		</style>
+		<h1 class="centreh serif" style="font-family:default; margin-bottom:0px; width:100%;">𝖓𝖘𝖆𝖚𝖙𝖍 𝖜𝖊𝖇</h1>
+		<h6 class="centreh serif" style="margin-top:0px; opacity:50%; width:100%;">𝔪𝔞𝔡𝔢 𝔦𝔫 𝔢𝔫𝔤𝔩𝔞𝔫𝔡</h1>
+		<hr />
+		<label for="pkey-textarea">Key Pair</label>
+		<br />
+		<!-- keep spellcheck set to false for elements that contain sensitive information -->
+		<textarea id="pkey-textarea" style="margin-top:8px;" spellcheck="false"></textarea>
+		<div class="centrev" style="display:flex;">
+			<button id="new-button" class="centrev">
+				<span class="material-symbols-outlined">add</span>
+				&nbsp;new&nbsp;
+			</button>
+			&nbsp;
+			<small>make new key pair; do&nbsp;</small>
+			<small class="small-important">not</small>
+			<small>&nbsp;share.</small>
+		</div>
+		<hr style="opacity:33%;" />
+		<label for="public-key-textarea">Public Key</label>
+		<br />
+		<textarea id="public-key-textarea" style="margin-top:8px;" spellcheck="false"></textarea>
+		<hr style="opacity:33%;" />
+		<div class="centrev">
+			<label for="challenge-text">Challenge:</label>
+			&nbsp;
+			<input id="challenge-text" type="text" spellcheck="false" />
+			&nbsp;
+			<span id="verified-span" class="material-symbols-outlined" style="color:#089141; visibility:collapse;">verified</span>
+			<span id="verified-off-span" class="material-symbols-outlined" style="color:#d31232;">verified_off</span>
+		</div>
+		<textarea id="challenge-textarea" style="margin-top:8px;" spellcheck="false"></textarea>
+		<div class="centrev" style="display:flex;">
+			<button id="sign-button" class="centrev">
+				<span class="material-symbols-outlined">signature</span>
+				&nbsp;sign&nbsp;
+			</button>
+			&nbsp;
+			<small>sign challenge. &nbsp;requires a populated key pair.</small>
+		</div>
+		<hr />
+		<footer class="centreh">
+			<small>version 1.0</small>
+			<hr />
+			<small>report bugs to&nbsp;</small><small style="user-select:all;">github.com/agitpropyookay/nsauth/issues</small>
+		</footer>
+		<script>
+const newButton = document.querySelector("#new-button");
+const signButton = document.querySelector("#sign-button");
+
+const pkeyTextarea = document.querySelector("#pkey-textarea");
+const publicKeyTextarea = document.querySelector("#public-key-textarea");
+const challengeTextarea = document.querySelector("#challenge-textarea");
+
+const challengeText = document.querySelector("#challenge-text");
+
+const verifiedSpan = document.querySelector("#verified-span");
+const verifiedOffSpan = document.querySelector("#verified-off-span");
+
+const encoder = new TextEncoder();
+
+/** 
+ * convert ArrayBuffer to and from string.  
+ * from: https://developer.chrome.com/blog/how-to-convert-arraybuffer-to-and-from-string/
+ */
+function ab2str(buf) {
+	return String.fromCharCode.apply(null, new Uint8Array(buf));
+}
+function str2ab(str) {
+	var buf = new ArrayBuffer(str.length);
+	var bufView = new Uint8Array(buf);
+	for (var i = 0; i < str.length; i++)
+		bufView[i] = str.charCodeAt(i);
+	return buf;
+}
+
+/** generate a new key.  */
+newButton.addEventListener("click", async () => {
+	const pkey = (await crypto.subtle.generateKey("Ed25519", true, ["sign", "verify"])).privateKey;
+	const exported = await crypto.subtle.exportKey("jwk", pkey);
+	pkeyTextarea.value = window.btoa(ab2str(encoder.encode(JSON.stringify(exported))));
+	pkeyTextarea.dispatchEvent(new Event("input")); // populate public key
+	challengeTextarea.dispatchEvent(new Event("input")); // verify signature
+});
+
+/** generate a digital signature.  */
+signButton.addEventListener("click", async () => {
+	const jwk = JSON.parse(atob(pkeyTextarea.value));
+	const pkey = await crypto.subtle.importKey("jwk", jwk, { name: "Ed25519", namedCurve: "Ed25519" }, false, ["sign"]);
+	const data = encoder.encode(challengeText.value);
+	const sig = await crypto.subtle.sign("Ed25519", pkey, data);
+	challengeTextarea.value = btoa(ab2str(sig));
+	challengeTextarea.dispatchEvent(new Event("input")); // verify signature
+});
+
+/** extract public key from key pair.  */
+pkeyTextarea.addEventListener("input", async () => {
+	publicKeyTextarea.value = JSON.parse(atob(pkeyTextarea.value)).x;
+});
+
+/** fire event to verify signature.  */
+publicKeyTextarea.addEventListener("input", async () => {
+	challengeTextarea.dispatchEvent(new Event("input")); // verify signature
+});
+
+/** fire event to verify signature.  */
+challengeText.addEventListener("input", async () => {
+	challengeTextarea.dispatchEvent(new Event("input")); // verify signature
+});
+
+/** verify signature.  */
+challengeTextarea.addEventListener("input", async () => {
+	verifiedSpan.style.visibility = "collapse";
+	verifiedOffSpan.style.visibility = "visible";
+	const x = publicKeyTextarea.value;
+	const sig = str2ab(atob(challengeTextarea.value));
+	const data = encoder.encode(challengeText.value);
+	const jwk = { crv: "Ed25519", ext: true, kty: "OKP", x: x };
+	const key = await crypto.subtle.importKey("jwk", jwk, { name: "Ed25519" }, false, ["verify"]);
+	const result = await crypto.subtle.verify({ name: "Ed25519" }, key, sig, data);
+	if (result) {
+		verifiedSpan.style.visibility = "visible";
+		verifiedOffSpan.style.visibility = "collapse";
+	}
+});
+		</script>
+	<body>
+</html>
