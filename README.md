@@ -1,25 +1,27 @@
+> [!NOTE]
+> The corresponding C project is not interoperable with nsauth web.  This is due to change in the direction of the project.  This may be solved in future.
+
 # nsauth
 cryptographic identity utility
 
 ## usage
-try `$ nsauth --help` or `$ nsauth --usage` for more information.
-- `$ nsauth --generate key.pem             # generate RSA pkey`
-- `$ nsauth --challenge example key.pem    # sign challenge`
-- `$ nsauth -c example -g key.pem          # single invocation`
+Download `nsauth.html` and open in a modern browser,[^1] or visit a mirror.[^2]
 
-generated private keys are encrypted using the AES algorithm with a 256-bit key in CBC mode and stored in PEM format; you will be prompted for a password on encryption and decryption
+Create a signature:
+1. make a new key pair or paste an existing one in the `Key Pair' textarea
+2. enter your challenge in the `Challenge' text input
+3. sign
+4. send your public key and signature to your service operator
 
-## configuration
-RSA modulus size BITS is hard coded; you may change it if you know what you are doing
-|         bits | time[^1]             | description                                |
-|--------------|----------------------|--------------------------------------------|
-|          829 | 0m0.008s             | RSA250 factored Feb 28 2020                |
-|         1024 | 0m0.012s             | insecure for signing as per NIST SP 800-57 |
-| [2048, 8192] | [0m0.040s, 0m4.126s] | recommended                                |
-|        16384 | 1m4.129s             | max recommended by OpenSSL                 |
-[^1]: key generation user time on AMD Ryzen™ 7 9800X3D × 16
+Verify a signature:
+1. enter the signature, corresponding public key, and challenge
+2. check the verification icon
+   - if Google Fonts is unavailable, then you may see \`VERIFIED' (valid) or \`VERIFIED_OFF' (invalid)
+[^1]: effort will be made to support Ladybird after its Alpha release in 2026
+[^2]: mirrors are convenient but may serve a malicious page
 
-## compilation
-dependencies: `glibc`, `help2man`, `libssl-dev`, `make`  
-compile with `$ make`  
-your compiler must support C23
+# opsec considerations
+Effort has been made to make usage secure, e.g. by disabling spellcheck, but this is not foolproof.  Users must ensure no untrusted extensions have access to the page, no malware is installed on their device, and any key pairs are stored securely e.g. in a password database or encrypted volume.  If you use a mirror, then check both the connection is secure and you trust the provider.[^2]
+
+# mirrors
+- soon&trade;
