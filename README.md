@@ -20,8 +20,8 @@ Verify a signature:
 [^1]: effort will be made to support Ladybird after its Alpha release in 2026
 [^2]: mirrors are convenient but may serve a malicious page
 
-# opsec considerations
+## opsec considerations
 Effort has been made to make usage secure, e.g. by disabling spellcheck, but this is not foolproof.  Users must ensure no untrusted extensions have access to the page, no malware is installed on their device, and any key pairs are stored securely e.g. in a password database or encrypted volume.  If you use a mirror, then check both the connection is secure and you trust the provider.[^2]
 
-# mirrors
+## mirrors
 - soon&trade;
