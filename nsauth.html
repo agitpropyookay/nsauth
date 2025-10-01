@@ -119,12 +119,46 @@ const encoder = new TextEncoder();
 function ab2str(buf) {
 	return String.fromCharCode.apply(null, new Uint8Array(buf));
 }
+
 function str2ab(str) {
 	var buf = new ArrayBuffer(str.length);
 	var bufView = new Uint8Array(buf);
 	for (var i = 0; i < str.length; i++)
 		bufView[i] = str.charCodeAt(i);
 	return buf;
+}
+
+/**
+ * convert base64url to base64.  note for natural numbers `a % b' is the same
+ * as `a & (b - 1)' when `b' is a power of 2.
+ * see: https://datatracker.ietf.org/doc/html/rfc4648#section-4
+ */
+function b64url2b64(url) {
+	let b64 = url.replaceAll("-", "+").replaceAll("_", "/");
+	switch (b64.length & 3) {
+		case 0: // case (1) in rfc
+			break;
+		case 1:
+			throw new Error("malformed base64url data");
+		case 2: // case (2) in rfc
+			b64 += "==";
+			break;
+		case 3: // case (3) in rfc
+			b64 += "=";
+	}
+	return b64;
+}
+
+/**
+ * convert base64 to base64url.  note for natural numbers `a % b' is the same
+ * as `a & (b - 1)' when `b' is a power of 2.
+ * see: https://datatracker.ietf.org/doc/html/rfc4648#section-5
+ */
+function b642b64url(b64) {
+	const url = b64.replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
+	if ((url.length & 3) == 1)
+		throw new Error("malformed base64 data");
+	return url;
 }
 
 /** generate a new key.  */
@@ -148,7 +182,7 @@ signButton.addEventListener("click", async () => {
 
 /** extract public key from key pair.  */
 pkeyTextarea.addEventListener("input", async () => {
-	publicKeyTextarea.value = JSON.parse(atob(pkeyTextarea.value)).x;
+	publicKeyTextarea.value = b64url2b64(JSON.parse(atob(pkeyTextarea.value)).x);
 });
 
 /** fire event to verify signature.  */
@@ -165,7 +199,7 @@ challengeText.addEventListener("input", async () => {
 challengeTextarea.addEventListener("input", async () => {
 	verifiedSpan.style.visibility = "collapse";
 	verifiedOffSpan.style.visibility = "visible";
-	const x = publicKeyTextarea.value;
+	const x = b642b64url(publicKeyTextarea.value);
 	const sig = str2ab(atob(challengeTextarea.value));
 	const data = encoder.encode(challengeText.value);
 	const jwk = { crv: "Ed25519", ext: true, kty: "OKP", x: x };
