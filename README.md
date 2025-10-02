@@ -2,7 +2,7 @@
 > The corresponding C project is not interoperable with nsauth web.  This is due to change in the direction of the project.  This may be solved in future.
 
 <div align="center">
-<img width="400" height="107" alt="wordmark" src="https://github.com/user-attachments/assets/9db13842-f71e-47e7-880e-1897a3eef14e" />
+    <img width="400" height="107" alt="wordmark" src="https://github.com/user-attachments/assets/9db13842-f71e-47e7-880e-1897a3eef14e" />
 </div>
 
 # nsauth
@@ -21,6 +21,8 @@ Verify a signature:
 1. enter the signature, corresponding public key, and challenge
 2. check the verification icon
    - if Google Fonts is unavailable, then you may see \`VERIFIED' (valid) or \`VERIFIED_OFF' (invalid)
+
+Paranoid users can memorise the visual fingerprints of their public keys.  The drunken bishop algorithm is used with a 128 bit truncated SHA-1 message digest as MD5 is unavailable.
 [^1]: effort will be made to support Ladybird after its Alpha release in 2026
 [^2]: mirrors are convenient but may serve a malicious page
 
