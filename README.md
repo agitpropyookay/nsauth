@@ -1,6 +1,10 @@
 > [!NOTE]
 > The corresponding C project is not interoperable with nsauth web.  This is due to change in the direction of the project.  This may be solved in future.
 
+<div align="center">
+<img width="400" height="107" alt="wordmark" src="https://github.com/user-attachments/assets/9db13842-f71e-47e7-880e-1897a3eef14e" />
+</div>
+
 # nsauth
 cryptographic identity utility
 
