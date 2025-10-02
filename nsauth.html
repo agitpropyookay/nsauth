@@ -19,7 +19,7 @@
 				font-family: "IBM Plex Mono", monospace;
 				font-size: 13px;
 				font-style: normal;
-				font-weight: 500;
+				font-weight: 400;
 				user-select: none;
 			}
 			.centreh {
@@ -72,7 +72,11 @@
 		<hr style="opacity:33%;" />
 		<label for="public-key-textarea">Public Key</label>
 		<br />
-		<textarea id="public-key-textarea" style="margin-top:8px;" spellcheck="false"></textarea>
+		<div class="centrev">
+			<textarea id="public-key-textarea" style="margin-top:8px;" spellcheck="false"></textarea>
+			&nbsp;
+			<pre id="drunken-bishop-pre" style="font-size:9px; line-height:1; margin:0;"></pre>
+		</div>
 		<hr style="opacity:33%;" />
 		<div class="centrev">
 			<label for="challenge-text">Challenge:</label>
@@ -93,7 +97,7 @@
 		</div>
 		<hr />
 		<footer class="centreh">
-			<small>version 1.0</small>
+			<small>version 1.1</small>
 			<hr />
 			<small>report bugs to&nbsp;</small><small style="user-select:all;">github.com/agitpropyookay/nsauth/issues</small>
 		</footer>
@@ -109,6 +113,8 @@ const challengeText = document.querySelector("#challenge-text");
 
 const verifiedSpan = document.querySelector("#verified-span");
 const verifiedOffSpan = document.querySelector("#verified-off-span");
+
+const drunkenBishopPre = document.querySelector("#drunken-bishop-pre");
 
 const encoder = new TextEncoder();
 
@@ -161,6 +167,81 @@ function b642b64url(b64) {
 	return url;
 }
 
+/**
+ * implement the drunken bishop algorithm.
+ */
+async function drunkenBishop(buf) {
+	function p2xy(p) {
+		return { x: p % 17, y: Math.trunc(p / 17) };
+	}
+	function xy2p(x, y) {
+		return x + 17 * y;
+	}
+	const moves = {
+		'M': { 0b00: -18, 0b01: -16, 0b10: +16, 0b11: +18 },
+		'T': { 0b00:  -1, 0b01:  +1, 0b10: +16, 0b11: +18 },
+		'B': { 0b00: -18, 0b01: -16, 0b10:  -1, 0b11:  +1 },
+		'L': { 0b00: -17, 0b01: -16, 0b10: +17, 0b11: +18 },
+		'R': { 0b00: -18, 0b01: -17, 0b10: +16, 0b11: +17 },
+		'a': { 0b00:   0, 0b01:  +1, 0b10: +17, 0b11: +18 },
+		'b': { 0b00:  -1, 0b01:   0, 0b10: +16, 0b11: +17 },
+		'c': { 0b00: -17, 0b01: -16, 0b10:   0, 0b11:  +1 },
+		'd': { 0b00: -18, 0b01: -17, 0b10:  -1, 0b11:   0 },
+	};
+	const charset = " .o+=*BOX@%&#/^";
+	const sha1 = await crypto.subtle.digest("SHA-1", buf);
+	const u8 = new Uint8Array(sha1);
+	const width = 17;
+	const height = 9;
+	const coins = new Uint8Array(17 + 17 * 9);
+	for (let i = 0; i < 16 + 17 * 8; ++i) {
+		coins[i] = 0;
+	}
+	let p = xy2p(8, 4);
+	coins[p] = 1;
+	for (let i = 0; i < 16; ++i) {
+		let byte = u8[i];
+		for (let _ = 0; _ < 4; ++_) {
+			let { x, y } = p2xy(p);
+			let pos = 'M';
+			if (x == 0)
+				pos = 'L';
+			if (x == 16)
+				pos = 'R';
+			if (y == 0)
+				pos = 'T';
+			if (y == 8)
+				pos = 'B';
+			if (x == 0 && y == 0)
+				pos = 'a';
+			if (x == 16 && y == 0)
+				pos = 'b';
+			if (x == 0 && y == 8)
+				pos = 'c';
+			if (x == 16 && y == 8)
+				pos = 'd';
+						p += moves[pos][byte & 0b11];
+			++coins[p];
+			byte >>= 2;
+		}
+	}
+	const end = p2xy(p);
+	let atrium = "+---[ Ed25519 ]---+\n";
+	for (let y = 0; y < 9; ++y) {
+		let lin = "";
+		for (let x = 0; x < 17; ++x) {
+			lin += x == 8 && y == 4
+				? 'S'
+				: x == end.x && y == end.y
+					? 'E'
+					: charset[Math.min(coins[xy2p(x, y)], charset.length - 1)];
+		}
+		atrium += `|${lin}|\n`;
+	}
+	atrium += "+-----------------+";
+	drunkenBishopPre.innerText = atrium;
+}
+
 /** generate a new key.  */
 newButton.addEventListener("click", async () => {
 	const pkey = (await crypto.subtle.generateKey("Ed25519", true, ["sign", "verify"])).privateKey;
@@ -183,10 +264,12 @@ signButton.addEventListener("click", async () => {
 /** extract public key from key pair.  */
 pkeyTextarea.addEventListener("input", async () => {
 	publicKeyTextarea.value = b64url2b64(JSON.parse(atob(pkeyTextarea.value)).x);
+	drunkenBishop(str2ab(atob(publicKeyTextarea.value)));
 });
 
 /** fire event to verify signature.  */
 publicKeyTextarea.addEventListener("input", async () => {
+	drunkenBishop(str2ab(atob(publicKeyTextarea.value)));
 	challengeTextarea.dispatchEvent(new Event("input")); // verify signature
 });
 
