@@ -194,9 +194,6 @@ async function drunkenBishop(buf) {
 	const width = 17;
 	const height = 9;
 	const coins = new Uint8Array(17 + 17 * 9);
-	for (let i = 0; i < 16 + 17 * 8; ++i) {
-		coins[i] = 0;
-	}
 	let p = xy2p(8, 4);
 	coins[p] = 1;
 	for (let i = 0; i < 16; ++i) {
